@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kang.mapper.mybatis.UserMapper">
+
+	<select id="getUserList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT  
+			a.id id,
+			a.login_name loginName,
+			a.pwd pwd, 
+			a.user_name userName,
+			a.tel tel,
+			a.icon icon,
+			a.gender gender,
+			a.birthday birthday,
+			a.email email,
+			a.addr addr,
+			a.create_time createTime,
+			a.is_del isDel,
+			b.role_name roleName  
+		FROM 
+			tb_user a
+		LEFT JOIN tb_role b ON b.id = a.role_id
+		WHERE 
+			a.is_del = false
+		<if test="id != null">
+		AND a.id = #{id}
+		</if>
+		<if test="loginName != null and loginName !=''">
+		AND a.login_name = #{loginName}
+		</if>
+		<if test="pwd != null and pwd !=''">
+		AND pwd = #{pwd}
+		</if> 
+		<if test="search != null and search != ''">
+			and login_name like '%${search}%'
+		</if>
+	</select>
+
+	<update id="updatePasswordByUsername">
+		update tb_user SET pwd = #{password} where login_name = #{username}
+	</update>
+	
+	<select id="getPermissionsList" resultType="java.util.Map">
+		SELECT
+			c.id id,
+			c.parent_id parentId,
+			c.name name,
+			c.type type,
+			c.url url,
+			c.icon icon,
+			c.order_num orderNum
+		FROM
+			tb_user a 
+		LEFT JOIN tb_role_permission b ON b.role_id = a.id
+		LEFT JOIN tb_permission c ON c.id = b.permssion_id
+		WHERE
+			a.is_del = FALSE
+		<if test="userId != null">
+		AND a.id = #{userId}
+		</if>
+	</select>
+	
+	<select id="getPermissionsList2" resultType="java.util.Map">
+		SELECT
+			c.id id,
+			c.parent_id parentId,
+			c.name name,
+			c.type type,
+			c.url url,
+			c.icon icon,
+			c.order_num orderNum
+		FROM
+		tb_permission c 
+	</select>
+
+
+</mapper>
