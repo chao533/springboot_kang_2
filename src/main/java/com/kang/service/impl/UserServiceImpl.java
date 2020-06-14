@@ -13,11 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import com.kang.common.exception.ServiceException;
 import com.kang.common.exception.TokenValidationException;
+import com.kang.common.msg.CommonPage;
 import com.kang.common.msg.ErrorCode;
 import com.kang.common.msg.Message;
 import com.kang.common.utils.JwtUtil;
@@ -51,10 +50,9 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public Message<?> findUserList(Map<String,Object> params) {
-    	Page<User> page = PageHelper.startPage(MapUtil.getInt(params, "pageNo"), MapUtil.getInt(params, "pageSize"));
-		Page<Map<String,Object>> datas = (Page<Map<String,Object>>) userMapper.getUserList(params);
-		datas.setTotal(page.getTotal());
-		PageInfo<Map<String,Object>> pageInfo = new PageInfo<>(datas);
+    	PageHelper.startPage(MapUtil.getInt(params, "pageNo"), MapUtil.getInt(params, "pageSize"));
+//		PageInfo<Map<String,Object>> pageInfo = new PageInfo<>(userList);
+    	CommonPage<Map<String, Object>> pageInfo = CommonPage.restPage(userMapper.getUserList(params));
 		for(Map<String,Object> result : pageInfo.getList()) {
 			result.put("icon", fastConfig.getFullPush(MapUtil.getStr(result, "icon")));
 		}
