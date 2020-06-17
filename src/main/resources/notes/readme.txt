@@ -37,6 +37,11 @@ docker run -p 3306:3306 --name mysql -v /zzyyuse/mysql/conf:/etc/mysql/conf.d -v
 -- zookeeper
 docker pull zookeeper
 docker run --name zk -p 2181:2181 -p 2888:2888 -p 3888:3888 --restart always -d zookeeper
+docker run -d --name zookeeper -p 2181:2181 -t wurstmeister/zookeeper
+
+
+-- kafka
+docker run -d --name kafka --publish 9092:9092 --link zookeeper --env KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 --env KAFKA_ADVERTISED_HOST_NAME=192.168.59.101 --env KAFKA_ADVERTISED_PORT=9092 --volume /etc/localtime:/etc/localtime wurstmeister/kafka:latest
 
 -- FastDFS
 docker pull morunchang/fastdfs
