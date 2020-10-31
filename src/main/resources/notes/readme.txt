@@ -21,9 +21,9 @@ rabbitmqctl reset
 rabbitmqctl start_app
 
 -- mongodb
-docker run -d -p 27017:27017 -p 28017:28017 -e MONGODB_PASS="123456" tutum/mongodb
-mongo admin -u admin -p 123456
-docker exec -it a7b25e82be1b /bin/bash
+docker run -itd --name mongo --restart=on-failure:10 -p 27017:27017 -v /home/db  mongo:3.2 --auth
+docker exec -it mongo mongo admin
+db.createUser({ user: "root" , pwd: "root", roles: ["root"]})
 
 -- elasticsearch
 docker pull elasticsearch
