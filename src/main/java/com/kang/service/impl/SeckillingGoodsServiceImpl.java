@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +19,6 @@ import com.kang.common.anno.LockAnnotation;
 import com.kang.common.constant.RedisConstants;
 import com.kang.common.msg.ErrorCode;
 import com.kang.common.msg.Message;
-import com.kang.config.redis.RedissonLock;
 import com.kang.config.zk.ZkLock;
 import com.kang.mapper.mybatis.SeckillingGoodsMapper;
 import com.kang.service.SeckillingGoodsService;
@@ -43,7 +44,7 @@ public class SeckillingGoodsServiceImpl implements SeckillingGoodsService{
 	@Autowired
 	private SeckillingGoodsMapper seckillingGoodsMapper;
 	@Autowired
-	private RedissonLock redissonLock;
+	private RedissonClient redissonClient;
 	@Autowired
 	private ZkLock zkLock;
 	
@@ -174,10 +175,9 @@ public class SeckillingGoodsServiceImpl implements SeckillingGoodsService{
 	@Override
 	public Message<?> seckillingGoods_RedissonLock(Long goodsId, Long userId) {
 //		尝试获取锁，最多等待3秒，上锁以后20秒自动解锁（实际项目中推荐这种，以防出现死锁）、这里根据预估秒杀人数，设定自动释放锁时间.
-		boolean res = false;
+		RLock lock = redissonClient.getLock(RedisConstants.KANG_REDISSON_LOCK + goodsId);
 		try {
-			res = redissonLock.tryLock(RedisConstants.KANG_REDISSON_LOCK + goodsId, TimeUnit.SECONDS, 3, 20);
-			if(res) {
+			if(lock.tryLock(3, TimeUnit.SECONDS)) {
 				int number = seckillingGoodsMapper.getGoodsStock(goodsId); // 获取库存
 				if (number > 0) {
 					seckillingGoodsMapper.subGoodsStock(goodsId); // 库存-1
@@ -195,7 +195,7 @@ public class SeckillingGoodsServiceImpl implements SeckillingGoodsService{
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			redissonLock.unlock(RedisConstants.KANG_REDISSON_LOCK + goodsId);
+			lock.unlock();
 		}
 		return new Message<>(ErrorCode.SUCESS_END);
 	}
